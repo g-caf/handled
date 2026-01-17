@@ -1,8 +1,4 @@
-<h1>Shop</h1>
-
-<p style="color: var(--text-secondary); margin-bottom: 2rem;">
-  Import your order history, select items, and add them directly to your platform cart.
-</p>
+<h1>Your Groceries</h1>
 
 <% if (error) { %>
   <div class="card" style="border-color: #8b2525; margin-bottom: 1.5rem;">
@@ -16,158 +12,118 @@
   </div>
 <% } %>
 
-<div class="grid">
-  <!-- Left Column: Suggestions -->
-  <section class="card">
-    <h2>Your Items</h2>
-
-    <form action="/shop/fetch-history" method="POST" style="margin-bottom: 1.5rem;">
-      <button type="submit" class="btn">
-        <%= lastFetched ? 'Refresh Order History' : 'Import Order History' %>
-      </button>
-      <% if (lastFetched) { %>
-        <span class="badge" style="margin-left: 0.5rem;">
-          Updated <%= new Date(lastFetched).toLocaleTimeString() %>
-        </span>
-      <% } %>
-    </form>
-
-    <% if (suggestions.length > 0) { %>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Ordered</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% suggestions.slice(0, 20).forEach(item => { %>
-            <tr>
-              <td><%= item.name %></td>
-              <td><%= item.count %>x</td>
-              <td>
-                <form action="/shop/select" method="POST" style="display: inline;">
-                  <input type="hidden" name="itemName" value="<%= item.name %>">
-                  <input type="hidden" name="quantity" value="1">
-                  <button type="submit" class="btn btn-sm">+ Add</button>
-                </form>
-              </td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-    <% } else { %>
-      <p class="empty-state">
-        Click "Import Order History" to see your frequently ordered items.
-        <br><br>
-        <a href="/connect">Connect your platforms first →</a>
-      </p>
-    <% } %>
-  </section>
-
-  <!-- Right Column: Selected Items / Cart -->
-  <section class="card">
-    <h2>Selected Items</h2>
-
-    <% if (selectedItems.length > 0) { %>
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Qty</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% selectedItems.forEach(item => { %>
-            <tr>
-              <td><%= item.name %></td>
-              <td>
-                <form action="/shop/update-quantity" method="POST" style="display: inline;">
-                  <input type="hidden" name="itemName" value="<%= item.name %>">
-                  <input
-                    type="number"
-                    name="quantity"
-                    value="<%= item.quantity %>"
-                    min="1"
-                    style="width: 60px; padding: 0.25rem;"
-                    onchange="this.form.submit()"
-                  >
-                </form>
-              </td>
-              <td>
-                <form action="/shop/remove" method="POST" style="display: inline;">
-                  <input type="hidden" name="itemName" value="<%= item.name %>">
-                  <button type="submit" class="btn btn-danger btn-sm">×</button>
-                </form>
-              </td>
-            </tr>
-          <% }) %>
-        </tbody>
-      </table>
-
-      <div class="divider"></div>
-
-      <h3 style="font-size: 1rem; margin-bottom: 1rem;">Add to Platform Cart</h3>
-
-      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <form action="/shop/checkout/ubereats" method="POST" style="flex: 1; min-width: 200px;">
-          <div class="form-group">
-            <label for="storeUrl-ue">Uber Eats Store URL</label>
-            <input
-              type="url"
-              id="storeUrl-ue"
-              name="storeUrl"
-              placeholder="https://www.ubereats.com/store/..."
-              required
-            >
-          </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%;">
-            Add to Uber Eats
-          </button>
-        </form>
-
-        <form action="/shop/checkout/doordash" method="POST" style="flex: 1; min-width: 200px;">
-          <div class="form-group">
-            <label for="storeUrl-dd">DoorDash Store URL</label>
-            <input
-              type="url"
-              id="storeUrl-dd"
-              name="storeUrl"
-              placeholder="https://www.doordash.com/store/..."
-              required
-            >
-          </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%;">
-            Add to DoorDash
-          </button>
-        </form>
-
-        <form action="/shop/checkout/instacart" method="POST" style="flex: 1; min-width: 200px;">
-          <div class="form-group">
-            <label for="storeUrl-ic">Instacart Store URL</label>
-            <input
-              type="url"
-              id="storeUrl-ic"
-              name="storeUrl"
-              placeholder="https://www.instacart.com/store/..."
-              required
-            >
-          </div>
-          <button type="submit" class="btn btn-primary" style="width: 100%;">
-            Add to Instacart
-          </button>
-        </form>
-      </div>
-
-      <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">
-        Paste the store URL where you want to order from. We'll search for each item and add it to your cart.
-      </p>
-    <% } else { %>
-      <p class="empty-state">
-        Select items from your order history to build your shopping list.
-      </p>
-    <% } %>
-  </section>
+<div style="margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center;">
+  <form action="/shop/fetch-history" method="POST" style="display: inline;">
+    <button type="submit" class="btn btn-primary">
+      <%= lastFetched ? 'Refresh' : 'Import Order History' %>
+    </button>
+  </form>
+  <% if (lastFetched) { %>
+    <span class="badge">Updated <%= new Date(lastFetched).toLocaleTimeString() %></span>
+  <% } %>
+  <a href="/connect" class="btn" style="margin-left: auto;">Connect Accounts</a>
 </div>
+
+<% if (suggestions.length > 0) { %>
+  <div class="card" style="padding: 0; overflow-x: auto;">
+    <table class="table" style="margin: 0;">
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th style="text-align: center;">Times Ordered</th>
+          <th style="text-align: right;">Lowest Price</th>
+          <th style="text-align: right;">Highest Price</th>
+          <th style="text-align: center;">Qty</th>
+          <th style="text-align: center;">Add to Cart</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% suggestions.forEach((item, idx) => { %>
+          <tr>
+            <td>
+              <strong><%= item.name %></strong>
+              <% if (item.lowestPrice?.platform) { %>
+                <br><span class="badge">Best: <%= item.lowestPrice.platform %></span>
+              <% } %>
+            </td>
+            <td style="text-align: center;"><%= item.count %>×</td>
+            <td style="text-align: right;">
+              <% if (item.lowestPrice) { %>
+                <span style="color: var(--accent);">
+                  $<%= item.lowestPrice.price?.toFixed(2) || '—' %>
+                </span>
+              <% } else { %>
+                <span class="badge">—</span>
+              <% } %>
+            </td>
+            <td style="text-align: right;">
+              <% if (item.highestPrice) { %>
+                $<%= item.highestPrice.price?.toFixed(2) || '—' %>
+              <% } else { %>
+                <span class="badge">—</span>
+              <% } %>
+            </td>
+            <td style="text-align: center;">
+              <input 
+                type="number" 
+                id="qty-<%= idx %>" 
+                value="1" 
+                min="1" 
+                max="99"
+                style="width: 60px; text-align: center; padding: 0.4rem;"
+              >
+            </td>
+            <td style="text-align: center;">
+              <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                <% if (item.lowestPrice?.storeUrl) { %>
+                  <form action="/shop/add-to-cart" method="POST" style="display: inline;">
+                    <input type="hidden" name="itemName" value="<%= item.name %>">
+                    <input type="hidden" name="platform" value="<%= item.lowestPrice.platform %>">
+                    <input type="hidden" name="storeUrl" value="<%= item.lowestPrice.storeUrl %>">
+                    <input type="hidden" name="quantity" value="1" class="qty-input" data-idx="<%= idx %>">
+                    <button type="submit" class="btn btn-sm btn-primary" title="Add to <%= item.lowestPrice.platform %>">
+                      + Best
+                    </button>
+                  </form>
+                <% } else { %>
+                  <form action="/shop/add-to-cart" method="POST" style="display: inline;">
+                    <input type="hidden" name="itemName" value="<%= item.name %>">
+                    <input type="hidden" name="quantity" value="1" class="qty-input" data-idx="<%= idx %>">
+                    <button type="submit" class="btn btn-sm">+ Add</button>
+                  </form>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Sync quantity inputs with hidden form fields
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+      input.addEventListener('change', function() {
+        const idx = this.id.replace('qty-', '');
+        document.querySelectorAll(`.qty-input[data-idx="${idx}"]`).forEach(hidden => {
+          hidden.value = this.value;
+        });
+      });
+    });
+  </script>
+
+<% } else { %>
+  <div class="card">
+    <p class="empty-state">
+      <% if (lastFetched) { %>
+        No items found in your order history.
+        <br><br>
+        Make sure you've connected your accounts and have past orders.
+      <% } else { %>
+        Import your order history to see your frequently ordered items with price comparison.
+        <br><br>
+        <a href="/connect">Connect your accounts first →</a>
+      <% } %>
+    </p>
+  </div>
+<% } %>

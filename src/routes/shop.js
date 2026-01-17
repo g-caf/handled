@@ -15,7 +15,6 @@ function getOrCreateUserState(sessionId) {
     userState.set(sessionId, {
       suggestions: [],
       orders: [],
-      selectedItems: new Map(), // itemName -> { quantity, platform, storeUrl }
       lastFetched: null,
     });
   }
@@ -26,9 +25,8 @@ router.get('/shop', async (req, res) => {
   const state = getOrCreateUserState(req.session.id);
 
   res.render('shop', {
-    title: 'Shop',
+    title: 'Your Groceries',
     suggestions: state.suggestions,
-    selectedItems: Array.from(state.selectedItems.entries()).map(([name, data]) => ({ name, ...data })),
     lastFetched: state.lastFetched,
     error: null,
     message: null,
@@ -80,147 +78,99 @@ router.post('/shop/fetch-history', async (req, res) => {
     }
   }
 
+  // Extract items with price info (lowestPrice and highestPrice included)
   state.suggestions = extractUniqueItemsFromOrders(allOrders);
+  
   state.orders = allOrders;
   state.lastFetched = new Date().toISOString();
 
   res.render('shop', {
-    title: 'Shop',
+    title: 'Your Groceries',
     suggestions: state.suggestions,
-    selectedItems: Array.from(state.selectedItems.entries()).map(([name, data]) => ({ name, ...data })),
     lastFetched: state.lastFetched,
     error: errors.length > 0 ? errors.join('; ') : null,
     message: `Found ${state.suggestions.length} items from ${allOrders.length} orders`,
   });
 });
 
-router.post('/shop/select', async (req, res) => {
+router.post('/shop/add-to-cart', async (req, res) => {
   const state = getOrCreateUserState(req.session.id);
   const { itemName, quantity, platform, storeUrl } = req.body;
 
-  if (itemName) {
-    state.selectedItems.set(itemName, {
-      quantity: parseInt(quantity) || 1,
-      platform: platform || null,
-      storeUrl: storeUrl || null,
-    });
+  if (!itemName) {
+    return res.redirect('/shop');
   }
 
-  res.redirect('/shop');
-});
+  const qty = parseInt(quantity) || 1;
 
-router.post('/shop/remove', async (req, res) => {
-  const state = getOrCreateUserState(req.session.id);
-  const { itemName } = req.body;
-
-  if (itemName) {
-    state.selectedItems.delete(itemName);
-  }
-
-  res.redirect('/shop');
-});
-
-router.post('/shop/update-quantity', async (req, res) => {
-  const state = getOrCreateUserState(req.session.id);
-  const { itemName, quantity } = req.body;
-
-  if (itemName && state.selectedItems.has(itemName)) {
-    const item = state.selectedItems.get(itemName);
-    item.quantity = parseInt(quantity) || 1;
-  }
-
-  res.redirect('/shop');
-});
-
-router.post('/shop/checkout/:platform', async (req, res) => {
-  const state = getOrCreateUserState(req.session.id);
-  const { platform } = req.params;
-  const { storeUrl } = req.body;
-
-  if (!['ubereats', 'doordash', 'instacart'].includes(platform)) {
-    return res.status(400).send('Invalid platform');
-  }
-
-  const session = await getSession(platform);
-  if (!session) {
-    return res.render('shop', {
-      title: 'Shop',
-      suggestions: state.suggestions,
-      selectedItems: Array.from(state.selectedItems.entries()).map(([name, data]) => ({ name, ...data })),
-      lastFetched: state.lastFetched,
-      error: `No session for ${platform}. Please connect it first.`,
-      message: null,
-    });
-  }
-
-  const slot = await acquireSlot(platform);
-  if (!slot.allowed) {
-    return res.render('shop', {
-      title: 'Shop',
-      suggestions: state.suggestions,
-      selectedItems: Array.from(state.selectedItems.entries()).map(([name, data]) => ({ name, ...data })),
-      lastFetched: state.lastFetched,
-      error: slot.reason,
-      message: null,
-    });
-  }
-
-  try {
-    const storageState = typeof session.storageState === 'string'
-      ? JSON.parse(session.storageState)
-      : session.storageState;
-
-    const items = Array.from(state.selectedItems.entries()).map(([name, data]) => ({
-      name,
-      quantity: data.quantity,
-    }));
-
-    let result;
-    if (platform === 'ubereats') {
-      result = await addToUberEatsCart(storageState, storeUrl, items);
-    } else if (platform === 'doordash') {
-      result = await addToDoorDashCart(storageState, storeUrl, items);
-    } else {
-      result = await instacartAgent.addToCart(storageState, storeUrl, items);
+  // If we have platform and storeUrl, add directly to that platform
+  if (platform && storeUrl) {
+    const session = await getSession(platform);
+    if (!session) {
+      return renderShop(req, res, state, {
+        error: `Not connected to ${platform}. Please connect first.`,
+      });
     }
 
-    releaseSlot(platform, !result.error, !!result.error);
-
-    if (result.updatedStorageState) {
-      await saveSession(platform, result.updatedStorageState);
+    const slot = await acquireSlot(platform);
+    if (!slot.allowed) {
+      return renderShop(req, res, state, { error: slot.reason });
     }
 
-    // Clear successfully added items
-    for (const itemName of result.addedItems || []) {
-      state.selectedItems.delete(itemName);
+    try {
+      const storageState = typeof session.storageState === 'string'
+        ? JSON.parse(session.storageState)
+        : session.storageState;
+
+      const items = [{ name: itemName, quantity: qty }];
+
+      let result;
+      if (platform === 'ubereats') {
+        result = await addToUberEatsCart(storageState, storeUrl, items);
+      } else if (platform === 'doordash') {
+        result = await addToDoorDashCart(storageState, storeUrl, items);
+      } else {
+        result = await instacartAgent.addToCart(storageState, storeUrl, items);
+      }
+
+      releaseSlot(platform, !result.error, !!result.error);
+
+      if (result.updatedStorageState) {
+        await saveSession(platform, result.updatedStorageState);
+      }
+
+      const platformName = platform === 'ubereats' ? 'Uber Eats' : 
+                          platform === 'doordash' ? 'DoorDash' : 'Instacart';
+
+      if (result.addedItems?.length) {
+        return renderShop(req, res, state, {
+          message: `Added ${qty}× ${itemName} to ${platformName} cart`,
+        });
+      } else {
+        return renderShop(req, res, state, {
+          error: result.error || `Could not find "${itemName}" at this store`,
+        });
+      }
+    } catch (err) {
+      releaseSlot(platform, false, false);
+      return renderShop(req, res, state, { error: err.message });
     }
-
-    const message = result.addedItems?.length
-      ? `Added ${result.addedItems.length} items to ${platform} cart`
-      : null;
-    const error = result.failedItems?.length
-      ? `Failed to add: ${result.failedItems.join(', ')}`
-      : result.error || null;
-
-    res.render('shop', {
-      title: 'Shop',
-      suggestions: state.suggestions,
-      selectedItems: Array.from(state.selectedItems.entries()).map(([name, data]) => ({ name, ...data })),
-      lastFetched: state.lastFetched,
-      error,
-      message,
-    });
-  } catch (err) {
-    releaseSlot(platform, false, false);
-    res.render('shop', {
-      title: 'Shop',
-      suggestions: state.suggestions,
-      selectedItems: Array.from(state.selectedItems.entries()).map(([name, data]) => ({ name, ...data })),
-      lastFetched: state.lastFetched,
-      error: err.message,
-      message: null,
-    });
   }
+
+  // No platform specified - show store selection or use default
+  return renderShop(req, res, state, {
+    error: 'Please connect an account first to add items to cart.',
+  });
 });
+
+function renderShop(req, res, state, options = {}) {
+  res.render('shop', {
+    title: 'Your Groceries',
+    suggestions: state.suggestions,
+    lastFetched: state.lastFetched,
+    error: options.error || null,
+    message: options.message || null,
+  });
+}
 
 export default router;

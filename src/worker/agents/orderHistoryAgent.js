@@ -238,6 +238,7 @@ export function extractUniqueItemsFromOrders(orders) {
           name: item.name,
           count: 0,
           lastOrdered: order.orderDate,
+          prices: [],
         });
       }
       const entry = itemCounts.get(key);
@@ -245,6 +246,27 @@ export function extractUniqueItemsFromOrders(orders) {
       if (order.orderDate && (!entry.lastOrdered || order.orderDate > entry.lastOrdered)) {
         entry.lastOrdered = order.orderDate;
       }
+      // Track prices from different platforms/stores
+      if (item.price) {
+        entry.prices.push({
+          price: item.price,
+          platform: order.platform,
+          storeName: order.storeName,
+          storeUrl: order.storeUrl || null,
+        });
+      }
+    }
+  }
+
+  // Process prices to find lowest and highest
+  for (const entry of itemCounts.values()) {
+    if (entry.prices.length > 0) {
+      entry.prices.sort((a, b) => a.price - b.price);
+      entry.lowestPrice = entry.prices[0];
+      entry.highestPrice = entry.prices[entry.prices.length - 1];
+    } else {
+      entry.lowestPrice = null;
+      entry.highestPrice = null;
     }
   }
 
