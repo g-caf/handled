@@ -6,12 +6,14 @@ const PLATFORMS = {
   ubereats: {
     name: 'Uber Eats',
     url: 'https://www.ubereats.com/',
-    loginIndicator: 'account',
   },
   doordash: {
     name: 'DoorDash',
     url: 'https://www.doordash.com/',
-    loginIndicator: 'account',
+  },
+  instacart: {
+    name: 'Instacart',
+    url: 'https://www.instacart.com/',
   },
 };
 

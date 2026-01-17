@@ -13,6 +13,12 @@ const CONFIG = {
     cooldownMs: 30 * 60 * 1000,
     maxFailures: 3,
   },
+  instacart: {
+    minDelayMs: 5000,
+    maxConcurrent: 1,
+    cooldownMs: 30 * 60 * 1000,
+    maxFailures: 3,
+  },
 };
 
 function getState(platform) {

@@ -112,7 +112,7 @@
       <h3 style="font-size: 1rem; margin-bottom: 1rem;">Add to Platform Cart</h3>
 
       <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <form action="/shop/checkout/ubereats" method="POST" style="flex: 1;">
+        <form action="/shop/checkout/ubereats" method="POST" style="flex: 1; min-width: 200px;">
           <div class="form-group">
             <label for="storeUrl-ue">Uber Eats Store URL</label>
             <input
@@ -128,7 +128,7 @@
           </button>
         </form>
 
-        <form action="/shop/checkout/doordash" method="POST" style="flex: 1;">
+        <form action="/shop/checkout/doordash" method="POST" style="flex: 1; min-width: 200px;">
           <div class="form-group">
             <label for="storeUrl-dd">DoorDash Store URL</label>
             <input
@@ -141,6 +141,22 @@
           </div>
           <button type="submit" class="btn btn-primary" style="width: 100%;">
             Add to DoorDash
+          </button>
+        </form>
+
+        <form action="/shop/checkout/instacart" method="POST" style="flex: 1; min-width: 200px;">
+          <div class="form-group">
+            <label for="storeUrl-ic">Instacart Store URL</label>
+            <input
+              type="url"
+              id="storeUrl-ic"
+              name="storeUrl"
+              placeholder="https://www.instacart.com/store/..."
+              required
+            >
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Add to Instacart
           </button>
         </form>
       </div>

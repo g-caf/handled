@@ -3,6 +3,7 @@ import { getSession, saveSession } from '../services/sessionService.js';
 import { acquireSlot, releaseSlot } from '../worker/rateLimiter.js';
 import { fetchUberEatsOrderHistory, fetchDoorDashOrderHistory, extractUniqueItemsFromOrders } from '../worker/agents/orderHistoryAgent.js';
 import { addToUberEatsCart, addToDoorDashCart } from '../worker/agents/addToCartAgent.js';
+import * as instacartAgent from '../worker/agents/instacartAgent.js';
 
 const router = Router();
 
@@ -39,7 +40,7 @@ router.post('/shop/fetch-history', async (req, res) => {
   const errors = [];
   const allOrders = [];
 
-  for (const platform of ['ubereats', 'doordash']) {
+  for (const platform of ['ubereats', 'doordash', 'instacart']) {
     const session = await getSession(platform);
     if (!session) continue;
 
@@ -54,9 +55,14 @@ router.post('/shop/fetch-history', async (req, res) => {
         ? JSON.parse(session.storageState)
         : session.storageState;
 
-      const result = platform === 'ubereats'
-        ? await fetchUberEatsOrderHistory(storageState)
-        : await fetchDoorDashOrderHistory(storageState);
+      let result;
+      if (platform === 'ubereats') {
+        result = await fetchUberEatsOrderHistory(storageState);
+      } else if (platform === 'doordash') {
+        result = await fetchDoorDashOrderHistory(storageState);
+      } else {
+        result = await instacartAgent.fetchOrderHistory(storageState);
+      }
 
       if (result.error) {
         releaseSlot(platform, false, true);
@@ -131,7 +137,7 @@ router.post('/shop/checkout/:platform', async (req, res) => {
   const { platform } = req.params;
   const { storeUrl } = req.body;
 
-  if (!['ubereats', 'doordash'].includes(platform)) {
+  if (!['ubereats', 'doordash', 'instacart'].includes(platform)) {
     return res.status(400).send('Invalid platform');
   }
 
@@ -172,8 +178,10 @@ router.post('/shop/checkout/:platform', async (req, res) => {
     let result;
     if (platform === 'ubereats') {
       result = await addToUberEatsCart(storageState, storeUrl, items);
-    } else {
+    } else if (platform === 'doordash') {
       result = await addToDoorDashCart(storageState, storeUrl, items);
+    } else {
+      result = await instacartAgent.addToCart(storageState, storeUrl, items);
     }
 
     releaseSlot(platform, !result.error, !!result.error);

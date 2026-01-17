@@ -4,12 +4,18 @@ import { getAllPlatformStatus } from '../worker/rateLimiter.js';
 
 const router = Router();
 
-const PLATFORMS = ['ubereats', 'doordash'];
+const PLATFORMS = ['ubereats', 'doordash', 'instacart'];
 
 router.get('/sessions', async (req, res) => {
   try {
     const sessions = await listSessions();
     const statuses = getAllPlatformStatus();
+
+    const platformNames = {
+      ubereats: 'Uber Eats',
+      doordash: 'DoorDash',
+      instacart: 'Instacart',
+    };
 
     const platforms = PLATFORMS.map(platform => {
       const session = sessions.find(s => s.platform === platform);
@@ -17,7 +23,7 @@ router.get('/sessions', async (req, res) => {
 
       return {
         platform,
-        displayName: platform === 'ubereats' ? 'Uber Eats' : 'DoorDash',
+        displayName: platformNames[platform] || platform,
         hasSession: !!session,
         sessionUpdatedAt: session?.updatedAt || null,
         status: status || null,
