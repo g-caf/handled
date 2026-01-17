@@ -9,4 +9,4 @@ COPY . .
 RUN npx playwright install chromium
 
 EXPOSE 3000
-CMD ["node", "src/server.js"]
+CMD ["node", "scripts/start.js"]
