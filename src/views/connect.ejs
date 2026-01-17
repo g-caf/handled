@@ -15,11 +15,14 @@
     <a 
       href="<%= bookmarklet %>" 
       class="btn btn-primary"
-      style="cursor: grab; font-size: 1rem; padding: 1rem 2rem;"
-      onclick="event.preventDefault(); alert('Drag this button to your bookmarks bar!');"
+      style="cursor: grab; font-size: 1rem; padding: 1rem 2rem; display: inline-block;"
+      draggable="true"
     >
       📎 Connect to Handled
     </a>
+    <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 1rem;">
+      ↑ Drag this button up to your bookmarks bar ↑
+    </p>
   </div>
   
   <p style="color: var(--text-muted); font-size: 0.85rem;">
