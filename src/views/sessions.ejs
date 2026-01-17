@@ -1,0 +1,85 @@
+<h1>Platform Sessions</h1>
+
+<p style="color: var(--text-secondary); margin-bottom: 2rem;">
+  Connect your delivery platform accounts to enable price comparison. Sessions are stored securely and used to fetch prices on your behalf.
+</p>
+
+<div class="grid">
+  <% platforms.forEach(p => { %>
+    <section class="card">
+      <h2><%= p.displayName %></h2>
+
+      <% if (p.hasSession) { %>
+        <p style="color: var(--accent); margin-bottom: 1rem;">✓ Connected</p>
+        <p class="badge">Last updated: <%= p.sessionUpdatedAt ? new Date(p.sessionUpdatedAt).toLocaleString() : 'Unknown' %></p>
+
+        <% if (p.status?.inCooldown) { %>
+          <p style="color: #cc4444; margin-top: 1rem;">
+            ⚠ Rate limited until <%= p.status.cooldownEndsAt %>
+          </p>
+        <% } %>
+
+        <form action="/sessions/<%= p.platform %>/delete" method="POST" style="margin-top: 1.5rem;">
+          <button type="submit" class="btn btn-danger btn-sm">Disconnect</button>
+        </form>
+      <% } else { %>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;">Not connected</p>
+
+        <details style="margin-bottom: 1rem;">
+          <summary style="cursor: pointer; color: var(--accent);">How to connect</summary>
+          <ol style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem; padding-left: 1.5rem;">
+            <li>Install Playwright locally: <code>npx playwright install chromium</code></li>
+            <li>Run the capture script: <code>node scripts/capture-session.js <%= p.platform %></code></li>
+            <li>Log in to <%= p.displayName %> in the browser that opens</li>
+            <li>The script will save your session and display it</li>
+            <li>Paste the JSON below and submit</li>
+          </ol>
+        </details>
+
+        <form action="/sessions/<%= p.platform %>/upload" method="POST">
+          <div class="form-group">
+            <label for="storageState-<%= p.platform %>">Session JSON</label>
+            <textarea
+              id="storageState-<%= p.platform %>"
+              name="storageState"
+              rows="4"
+              placeholder='Paste the storageState JSON here...'
+              required
+            ></textarea>
+          </div>
+          <button type="submit" class="btn">Connect <%= p.displayName %></button>
+        </form>
+      <% } %>
+    </section>
+  <% }) %>
+</div>
+
+<section class="card" style="margin-top: 2rem;">
+  <h2>Rate Limit Status</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Platform</th>
+        <th>Active Requests</th>
+        <th>Failures</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% platforms.forEach(p => { %>
+        <tr>
+          <td><%= p.displayName %></td>
+          <td><%= p.status?.activeRequests || 0 %> / <%= p.status?.maxConcurrent || 1 %></td>
+          <td><%= p.status?.consecutiveFailures || 0 %></td>
+          <td>
+            <% if (p.status?.inCooldown) { %>
+              <span style="color: #cc4444;">Cooldown</span>
+            <% } else { %>
+              <span style="color: var(--accent);">Ready</span>
+            <% } %>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</section>

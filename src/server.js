@@ -8,6 +8,7 @@ import { env } from './config/env.js';
 import { pool } from './config/db.js';
 import cartRoutes from './routes/cart.js';
 import dashboardRoutes from './routes/dashboard.js';
+import sessionsRoutes from './routes/sessions.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -46,6 +47,7 @@ app.use((req, res, next) => {
 
 app.use(cartRoutes);
 app.use(dashboardRoutes);
+app.use(sessionsRoutes);
 
 app.get('/', (req, res) => {
   res.render('index');

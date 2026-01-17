@@ -5,10 +5,10 @@ export async function searchStore(storageState, storeName) {
 
   try {
     const collector = createApiResponseCollector(page, [
-      'api', 'getStoreV1', 'getFeed', 'store', 'menu', 'catalog', 'items', 'products'
+      'api', 'graphql', 'store', 'menu', 'items', 'products', 'search'
     ]);
 
-    await page.goto('https://www.ubereats.com/', { waitUntil: 'domcontentloaded' });
+    await page.goto('https://www.doordash.com/', { waitUntil: 'domcontentloaded' });
     await randomDelay(1000, 2000);
 
     const blockCheck = await checkForBlock(page);
@@ -21,7 +21,8 @@ export async function searchStore(storageState, storeName) {
       'input[placeholder*="Search"]',
       'input[aria-label*="search"]',
       'input[type="search"]',
-      '[data-testid="search-input"]'
+      '[data-testid="SearchInput"]',
+      '[data-anchor-id="SearchInput"]'
     ];
 
     let searchInput = null;
@@ -57,7 +58,7 @@ export async function captureStoreItems(storageState, storeUrl) {
 
   try {
     const collector = createApiResponseCollector(page, [
-      'api', 'getStoreV1', 'getFeed', 'store', 'menu', 'catalog', 'items', 'products', 'sections'
+      'api', 'graphql', 'store', 'menu', 'items', 'products', 'categories'
     ]);
 
     await page.goto(storeUrl, { waitUntil: 'domcontentloaded' });
@@ -81,28 +82,27 @@ export async function captureStoreItems(storageState, storeUrl) {
   }
 }
 
-async function autoScroll(page, maxScrolls = 10) {
+async function autoScroll(page, maxScrolls = 8) {
   for (let i = 0; i < maxScrolls; i++) {
     const previousHeight = await page.evaluate(() => document.body.scrollHeight);
-    
+
     await page.evaluate(() => {
       window.scrollBy(0, window.innerHeight);
     });
-    
+
     await randomDelay(800, 1200);
-    
+
     const newHeight = await page.evaluate(() => document.body.scrollHeight);
     if (newHeight === previousHeight) break;
   }
-  
-  // Scroll back to top
+
   await page.evaluate(() => window.scrollTo(0, 0));
 }
 
 function extractItemsFromResponses(responses) {
   const items = [];
   const seenNames = new Set();
-  
+
   for (const response of responses) {
     const extracted = findItemsInObject(response.data);
     for (const item of extracted) {
@@ -112,14 +112,14 @@ function extractItemsFromResponses(responses) {
       }
     }
   }
-  
+
   return items;
 }
 
 function findItemsInObject(obj, depth = 0) {
   const items = [];
   if (depth > 10 || !obj) return items;
-  
+
   if (Array.isArray(obj)) {
     for (const element of obj) {
       if (isProductLike(element)) {
@@ -132,59 +132,55 @@ function findItemsInObject(obj, depth = 0) {
     if (isProductLike(obj)) {
       items.push(normalizeItem(obj));
     }
-    
-    // Check common container keys
-    const containerKeys = ['items', 'products', 'menuItems', 'data', 'results', 'catalog', 'sections', 'catalogItems'];
+
+    const containerKeys = ['items', 'products', 'menuItems', 'data', 'results', 'storeMenuItems', 'itemList'];
     for (const key of containerKeys) {
       if (obj[key]) {
         items.push(...findItemsInObject(obj[key], depth + 1));
       }
     }
-    
-    // Recurse into other object properties
+
     for (const [key, value] of Object.entries(obj)) {
       if (!containerKeys.includes(key) && typeof value === 'object') {
         items.push(...findItemsInObject(value, depth + 1));
       }
     }
   }
-  
+
   return items;
 }
 
 function isProductLike(obj) {
   if (!obj || typeof obj !== 'object') return false;
-  
-  const hasName = obj.name || obj.title || obj.itemName || obj.productName;
-  const hasPrice = obj.price !== undefined || obj.priceAmount !== undefined || 
-                   obj.unitPrice !== undefined || obj.displayPrice;
-  
+
+  const hasName = obj.name || obj.title || obj.displayName || obj.itemName;
+  const hasPrice = obj.price !== undefined || obj.displayPrice !== undefined ||
+                   obj.unitPrice !== undefined || obj.monetaryFields;
+
   return hasName && hasPrice;
 }
 
 function normalizeItem(obj) {
-  const name = obj.name || obj.title || obj.itemName || obj.productName || 'Unknown';
-  
+  const name = obj.name || obj.title || obj.displayName || obj.itemName || 'Unknown';
+
   let price = null;
   if (typeof obj.price === 'number') {
-    price = obj.price;
-  } else if (obj.price?.amount) {
-    price = obj.price.amount;
-  } else if (obj.priceAmount) {
-    price = obj.priceAmount;
-  } else if (obj.unitPrice) {
-    price = obj.unitPrice;
-  } else if (typeof obj.displayPrice === 'string') {
-    const match = obj.displayPrice.match(/[\d.]+/);
+    price = obj.price / 100; // DoorDash often uses cents
+  } else if (obj.price?.unitAmount) {
+    price = obj.price.unitAmount / 100;
+  } else if (obj.displayPrice) {
+    const match = String(obj.displayPrice).match(/[\d.]+/);
     price = match ? parseFloat(match[0]) : null;
+  } else if (obj.unitPrice) {
+    price = typeof obj.unitPrice === 'number' ? obj.unitPrice / 100 : null;
   }
-  
+
   return {
     name,
     price,
-    unit: obj.unit || obj.unitOfMeasure || obj.quantityUnit || null,
-    inStock: obj.inStock !== false && obj.available !== false && obj.isAvailable !== false,
-    category: obj.category || obj.categoryName || obj.section || null,
-    platform: 'ubereats'
+    unit: obj.unit || obj.unitOfMeasure || null,
+    inStock: obj.isAvailable !== false && obj.isSoldOut !== true,
+    category: obj.category || obj.categoryName || null,
+    platform: 'doordash'
   };
 }
