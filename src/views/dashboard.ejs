@@ -1,0 +1,47 @@
+<%- include('layout', { body: `
+<h1>Price Comparison Dashboard</h1>
+
+<% if (items.length === 0) { %>
+  <div class="card">
+    <p class="empty-state">No items in cart. <a href="/cart">Add some items</a> to compare prices.</p>
+  </div>
+<% } else { %>
+  <% items.forEach(item => { %>
+    <section class="card">
+      <h2><%= item.name %> <span class="badge">x<%= item.quantity %></span></h2>
+      <% if (item.results.length === 0) { %>
+        <p class="empty-state">No price results yet. Run price check to find deals.</p>
+      <% } else { %>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Store</th>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Unit Price</th>
+              <th>Checked</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% item.results.forEach((r, idx) => { %>
+              <tr class="<%= idx === 0 ? 'best-price' : '' %>">
+                <td><%= r.store %></td>
+                <td>
+                  <% if (r.url) { %>
+                    <a href="<%= r.url %>" target="_blank"><%= r.product_name %></a>
+                  <% } else { %>
+                    <%= r.product_name %>
+                  <% } %>
+                </td>
+                <td>$<%= r.price ? r.price.toFixed(2) : '-' %></td>
+                <td><%= r.unit_price || '-' %></td>
+                <td><%= r.checked_at ? new Date(r.checked_at).toLocaleDateString() : '-' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      <% } %>
+    </section>
+  <% }) %>
+<% } %>
+` }) %>
