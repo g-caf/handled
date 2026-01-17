@@ -25,7 +25,7 @@ const PLATFORMS = {
 function generateBookmarklet(baseUrl) {
   const code = `
     (function() {
-      var cookies = document.cookie.split(';').map(function(c) {
+      var cookies = document.cookie.split(';').filter(function(c) { return c.trim(); }).map(function(c) {
         var parts = c.trim().split('=');
         return { name: parts[0], value: parts.slice(1).join('='), domain: location.hostname };
       });
@@ -34,8 +34,8 @@ function generateBookmarklet(baseUrl) {
         origins: [{
           origin: location.origin,
           localStorage: Object.keys(localStorage).map(function(k) {
-            return { name: k, value: localStorage.getItem(k) };
-          })
+            try { return { name: k, value: localStorage.getItem(k) }; } catch(e) { return null; }
+          }).filter(Boolean)
         }]
       };
       var domain = location.hostname.replace('www.', '').split('.').slice(-2).join('.');
@@ -43,26 +43,29 @@ function generateBookmarklet(baseUrl) {
                      domain.includes('doordash') ? 'doordash' : 
                      domain.includes('instacart') ? 'instacart' : null;
       if (!platform) {
-        alert('Please run this on Uber Eats, DoorDash, or Instacart');
+        alert('Please run this on Uber Eats, DoorDash, or Instacart. Current domain: ' + domain);
         return;
       }
+      alert('Connecting ' + platform + '... please wait.');
       fetch('${baseUrl}/connect/receive', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ platform: platform, storageState: data }),
-        mode: 'cors',
-        credentials: 'include'
+        mode: 'cors'
       })
-      .then(function(r) { return r.json(); })
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
       .then(function(d) {
         if (d.success) {
-          alert('✓ Connected to Handled! You can close this tab.');
+          alert('✓ Connected ' + platform + ' to Handled! You can close this tab.');
         } else {
           alert('Error: ' + (d.error || 'Unknown error'));
         }
       })
       .catch(function(e) {
-        alert('Connection failed. Please try again.');
+        alert('Connection failed: ' + e.message + '. Check that you are logged in and try again.');
       });
     })();
   `.replace(/\s+/g, ' ').trim();
