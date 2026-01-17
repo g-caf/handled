@@ -33,9 +33,7 @@ function generateBookmarklet(baseUrl) {
         cookies: cookies,
         origins: [{
           origin: location.origin,
-          localStorage: Object.keys(localStorage).map(function(k) {
-            try { return { name: k, value: localStorage.getItem(k) }; } catch(e) { return null; }
-          }).filter(Boolean)
+          localStorage: []
         }]
       };
       var domain = location.hostname.replace('www.', '').split('.').slice(-2).join('.');
@@ -46,27 +44,34 @@ function generateBookmarklet(baseUrl) {
         alert('Please run this on Uber Eats, DoorDash, or Instacart. Current domain: ' + domain);
         return;
       }
-      alert('Connecting ' + platform + '... please wait.');
-      fetch('${baseUrl}/connect/receive', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ platform: platform, storageState: data }),
-        mode: 'cors'
-      })
-      .then(function(r) {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(function(d) {
-        if (d.success) {
-          alert('✓ Connected ' + platform + ' to Handled! You can close this tab.');
-        } else {
-          alert('Error: ' + (d.error || 'Unknown error'));
+      var url = '${baseUrl}/connect/receive';
+      console.log('Handled: connecting to', url);
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', url, true);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+          console.log('Handled: response', xhr.status, xhr.responseText);
+          if (xhr.status === 200) {
+            try {
+              var d = JSON.parse(xhr.responseText);
+              if (d.success) {
+                alert('✓ Connected ' + platform + ' to Handled! You can close this tab.');
+              } else {
+                alert('Error: ' + (d.error || 'Unknown error'));
+              }
+            } catch(e) {
+              alert('Error parsing response: ' + xhr.responseText);
+            }
+          } else {
+            alert('Connection failed (HTTP ' + xhr.status + '). URL: ' + url);
+          }
         }
-      })
-      .catch(function(e) {
-        alert('Connection failed: ' + e.message + '. Check that you are logged in and try again.');
-      });
+      };
+      xhr.onerror = function() {
+        alert('Network error connecting to: ' + url + '. Check browser console for details.');
+      };
+      xhr.send(JSON.stringify({ platform: platform, storageState: data }));
     })();
   `.replace(/\s+/g, ' ').trim();
   
