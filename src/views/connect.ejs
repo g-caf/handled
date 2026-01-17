@@ -1,0 +1,67 @@
+<h1>Connect Your Accounts</h1>
+
+<p style="color: var(--text-secondary); margin-bottom: 2rem;">
+  Connect your delivery accounts to import your order history. This is a one-time setup.
+</p>
+
+<!-- Step 1: Bookmarklet -->
+<section class="card">
+  <h2>Step 1: Add the Connect Button</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+    Drag this button to your bookmarks bar (once):
+  </p>
+  
+  <div style="text-align: center; padding: 2rem; background: var(--bg-secondary); border: 2px dashed var(--border); margin-bottom: 1rem;">
+    <a 
+      href="<%= bookmarklet %>" 
+      class="btn btn-primary"
+      style="cursor: grab; font-size: 1rem; padding: 1rem 2rem;"
+      onclick="event.preventDefault(); alert('Drag this button to your bookmarks bar!');"
+    >
+      📎 Connect to Handled
+    </a>
+  </div>
+  
+  <p style="color: var(--text-muted); font-size: 0.85rem;">
+    <strong>Tip:</strong> If you don't see your bookmarks bar, press <kbd>Cmd+Shift+B</kbd> (Mac) or <kbd>Ctrl+Shift+B</kbd> (Windows).
+  </p>
+</section>
+
+<!-- Step 2: Login and Connect -->
+<section class="card" style="margin-top: 2rem;">
+  <h2>Step 2: Log In & Connect</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+    Click a platform below, log in to your account, then click the "Connect to Handled" bookmark.
+  </p>
+  
+  <div class="grid" style="gap: 1rem;">
+    <% Object.entries(platforms).forEach(([key, platform]) => { %>
+      <a 
+        href="<%= platform.loginUrl %>" 
+        target="_blank"
+        class="btn"
+        style="text-align: center; padding: 1.5rem;"
+      >
+        Open <%= platform.name %> →
+      </a>
+    <% }) %>
+  </div>
+  
+  <div style="margin-top: 2rem; padding: 1.5rem; background: var(--bg-secondary); border-left: 3px solid var(--accent);">
+    <strong style="color: var(--text-primary);">How it works:</strong>
+    <ol style="color: var(--text-secondary); margin-top: 0.5rem; padding-left: 1.5rem;">
+      <li>Click a platform button above (opens in new tab)</li>
+      <li>Log in to your account if needed</li>
+      <li>Click the <strong>"Connect to Handled"</strong> bookmark in your bookmarks bar</li>
+      <li>You'll see a success message when connected!</li>
+    </ol>
+  </div>
+</section>
+
+<!-- Status -->
+<section class="card" style="margin-top: 2rem;">
+  <h2>Connection Status</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+    <a href="/sessions">View connected accounts →</a>
+  </p>
+</section>
