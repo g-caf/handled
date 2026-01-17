@@ -2,6 +2,7 @@ import express from 'express';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import expressLayouts from 'express-ejs-layouts';
+import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { env } from './config/env.js';
@@ -24,16 +25,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(expressLayouts);
 app.set('layout', 'layout');
 
-// CORS for bookmarklet connections
-app.use('/connect/receive', (req, res, next) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
-  }
-  next();
-});
+// CORS for bookmarklet connections from delivery platforms
+app.use('/connect/receive', cors({
+  origin: true,
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
