@@ -45,7 +45,12 @@ app.use(cartRoutes);
 app.use(dashboardRoutes);
 
 app.get('/', (req, res) => {
-  res.redirect('/cart');
+  res.render('index');
+});
+
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).send(`Error: ${err.message}`);
 });
 
 app.listen(env.PORT, () => {
