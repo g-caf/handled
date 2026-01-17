@@ -10,6 +10,7 @@ import cartRoutes from './routes/cart.js';
 import dashboardRoutes from './routes/dashboard.js';
 import sessionsRoutes from './routes/sessions.js';
 import importRoutes from './routes/import.js';
+import shopRoutes from './routes/shop.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,6 +51,7 @@ app.use(cartRoutes);
 app.use(dashboardRoutes);
 app.use(sessionsRoutes);
 app.use(importRoutes);
+app.use(shopRoutes);
 
 app.get('/', (req, res) => {
   res.render('index');

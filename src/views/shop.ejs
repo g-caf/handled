@@ -1,0 +1,157 @@
+<h1>Shop</h1>
+
+<p style="color: var(--text-secondary); margin-bottom: 2rem;">
+  Import your order history, select items, and add them directly to your platform cart.
+</p>
+
+<% if (error) { %>
+  <div class="card" style="border-color: #8b2525; margin-bottom: 1.5rem;">
+    <p style="color: #cc4444; margin: 0;"><%= error %></p>
+  </div>
+<% } %>
+
+<% if (message) { %>
+  <div class="card" style="border-color: var(--accent); margin-bottom: 1.5rem;">
+    <p style="color: var(--accent); margin: 0;"><%= message %></p>
+  </div>
+<% } %>
+
+<div class="grid">
+  <!-- Left Column: Suggestions -->
+  <section class="card">
+    <h2>Your Items</h2>
+
+    <form action="/shop/fetch-history" method="POST" style="margin-bottom: 1.5rem;">
+      <button type="submit" class="btn">
+        <%= lastFetched ? 'Refresh Order History' : 'Import Order History' %>
+      </button>
+      <% if (lastFetched) { %>
+        <span class="badge" style="margin-left: 0.5rem;">
+          Updated <%= new Date(lastFetched).toLocaleTimeString() %>
+        </span>
+      <% } %>
+    </form>
+
+    <% if (suggestions.length > 0) { %>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Ordered</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% suggestions.slice(0, 20).forEach(item => { %>
+            <tr>
+              <td><%= item.name %></td>
+              <td><%= item.count %>x</td>
+              <td>
+                <form action="/shop/select" method="POST" style="display: inline;">
+                  <input type="hidden" name="itemName" value="<%= item.name %>">
+                  <input type="hidden" name="quantity" value="1">
+                  <button type="submit" class="btn btn-sm">+ Add</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p class="empty-state">
+        Click "Import Order History" to see your frequently ordered items.
+        <br><br>
+        <a href="/sessions">Connect your platforms first →</a>
+      </p>
+    <% } %>
+  </section>
+
+  <!-- Right Column: Selected Items / Cart -->
+  <section class="card">
+    <h2>Selected Items</h2>
+
+    <% if (selectedItems.length > 0) { %>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% selectedItems.forEach(item => { %>
+            <tr>
+              <td><%= item.name %></td>
+              <td>
+                <form action="/shop/update-quantity" method="POST" style="display: inline;">
+                  <input type="hidden" name="itemName" value="<%= item.name %>">
+                  <input
+                    type="number"
+                    name="quantity"
+                    value="<%= item.quantity %>"
+                    min="1"
+                    style="width: 60px; padding: 0.25rem;"
+                    onchange="this.form.submit()"
+                  >
+                </form>
+              </td>
+              <td>
+                <form action="/shop/remove" method="POST" style="display: inline;">
+                  <input type="hidden" name="itemName" value="<%= item.name %>">
+                  <button type="submit" class="btn btn-danger btn-sm">×</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <div class="divider"></div>
+
+      <h3 style="font-size: 1rem; margin-bottom: 1rem;">Add to Platform Cart</h3>
+
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <form action="/shop/checkout/ubereats" method="POST" style="flex: 1;">
+          <div class="form-group">
+            <label for="storeUrl-ue">Uber Eats Store URL</label>
+            <input
+              type="url"
+              id="storeUrl-ue"
+              name="storeUrl"
+              placeholder="https://www.ubereats.com/store/..."
+              required
+            >
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Add to Uber Eats
+          </button>
+        </form>
+
+        <form action="/shop/checkout/doordash" method="POST" style="flex: 1;">
+          <div class="form-group">
+            <label for="storeUrl-dd">DoorDash Store URL</label>
+            <input
+              type="url"
+              id="storeUrl-dd"
+              name="storeUrl"
+              placeholder="https://www.doordash.com/store/..."
+              required
+            >
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">
+            Add to DoorDash
+          </button>
+        </form>
+      </div>
+
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 1rem;">
+        Paste the store URL where you want to order from. We'll search for each item and add it to your cart.
+      </p>
+    <% } else { %>
+      <p class="empty-state">
+        Select items from your order history to build your shopping list.
+      </p>
+    <% } %>
+  </section>
+</div>
