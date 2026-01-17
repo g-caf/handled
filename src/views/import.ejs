@@ -1,0 +1,106 @@
+<h1>Import Past Orders</h1>
+
+<p style="color: var(--text-secondary); margin-bottom: 2rem;">
+  Fetch your order history from connected platforms to quickly add frequently ordered items to your cart.
+</p>
+
+<% if (error) { %>
+  <div class="card" style="border-color: #8b2525; margin-bottom: 2rem;">
+    <p style="color: #cc4444;"><%= error %></p>
+  </div>
+<% } %>
+
+<section class="card">
+  <h2>Fetch Order History</h2>
+  <form action="/import/fetch" method="POST">
+    <div class="form-group">
+      <label for="platform">Platform</label>
+      <select id="platform" name="platform">
+        <option value="both">Both Platforms</option>
+        <option value="ubereats">Uber Eats Only</option>
+        <option value="doordash">DoorDash Only</option>
+      </select>
+    </div>
+    <button type="submit" class="btn">Fetch Orders</button>
+    <% if (lastFetched) { %>
+      <span class="badge" style="margin-left: 1rem;">Last fetched: <%= new Date(lastFetched).toLocaleString() %></span>
+    <% } %>
+  </form>
+</section>
+
+<% if (suggestions.length > 0) { %>
+  <section class="card" style="margin-top: 2rem;">
+    <h2>Suggested Items</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+      Based on your order history. Select items to add to your cart.
+    </p>
+
+    <form action="/import/add" method="POST">
+      <table class="table">
+        <thead>
+          <tr>
+            <th style="width: 40px;">
+              <input type="checkbox" id="selectAll" onclick="toggleAll(this)">
+            </th>
+            <th>Item</th>
+            <th>Times Ordered</th>
+            <th>Last Ordered</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% suggestions.forEach((item, idx) => { %>
+            <tr>
+              <td>
+                <input type="checkbox" name="items" value="<%= item.name %>" class="item-checkbox">
+              </td>
+              <td><%= item.name %></td>
+              <td><%= item.count %></td>
+              <td><%= item.lastOrdered ? new Date(item.lastOrdered).toLocaleDateString() : '-' %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <div style="margin-top: 1.5rem;">
+        <button type="submit" class="btn btn-primary">Add Selected to Cart</button>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    function toggleAll(source) {
+      const checkboxes = document.querySelectorAll('.item-checkbox');
+      checkboxes.forEach(cb => cb.checked = source.checked);
+    }
+  </script>
+<% } else if (lastFetched) { %>
+  <section class="card" style="margin-top: 2rem;">
+    <p class="empty-state">No items found in your order history. Try connecting more platforms or checking your session.</p>
+  </section>
+<% } %>
+
+<% if (orders.length > 0) { %>
+  <section class="card" style="margin-top: 2rem;">
+    <h2>Recent Orders</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Platform</th>
+          <th>Store</th>
+          <th>Items</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% orders.slice(0, 10).forEach(order => { %>
+          <tr>
+            <td><%= order.platform === 'ubereats' ? 'Uber Eats' : 'DoorDash' %></td>
+            <td><%= order.storeName %></td>
+            <td><%= order.items.length %> items</td>
+            <td><%= order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-' %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </section>
+<% } %>
