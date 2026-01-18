@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Lato:wght@300;400;500&display=swap');
 
 * {
   margin: 0;
@@ -7,36 +7,38 @@
 }
 
 :root {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #141414;
-  --bg-card: #1a1a1a;
-  --text-primary: #f5f5f0;
-  --text-secondary: #a0a0a0;
-  --text-muted: #666;
-  --accent: #c9a962;
-  --accent-hover: #d4b876;
-  --border: #2a2a2a;
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Inter', -apple-system, sans-serif;
+  --bg-primary: #f8f6f1;
+  --bg-secondary: #f0ede5;
+  --bg-card: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --text-muted: #888;
+  --accent: #2d4a3e;
+  --accent-light: #3d6252;
+  --accent-dark: #1e3329;
+  --gold: #c4a35a;
+  --border: #e0ddd5;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Lato', -apple-system, sans-serif;
 }
 
 body {
   font-family: var(--font-sans);
   font-weight: 300;
-  line-height: 1.7;
+  line-height: 1.8;
   color: var(--text-primary);
   background-color: var(--bg-primary);
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 
 nav {
-  background-color: var(--bg-primary);
-  padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--border);
+  background-color: var(--accent);
+  padding: 1.25rem 2rem;
+  border-bottom: 1px solid var(--accent-dark);
 }
 
 .nav-container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
@@ -45,11 +47,11 @@ nav {
 
 .logo {
   font-family: var(--font-serif);
-  color: var(--text-primary);
+  color: #fff;
   text-decoration: none;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 500;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -60,20 +62,20 @@ nav {
 }
 
 .nav-links a {
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   transition: color 0.3s ease;
 }
 
 .nav-links a:hover {
-  color: var(--text-primary);
+  color: #fff;
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 2rem;
 }
@@ -81,25 +83,27 @@ nav {
 /* Hero Section */
 .hero {
   text-align: center;
-  padding: 6rem 2rem;
-  max-width: 900px;
+  padding: 5rem 2rem;
+  max-width: 800px;
   margin: 0 auto;
+  background: linear-gradient(to bottom, var(--bg-secondary), var(--bg-primary));
 }
 
 .hero h1 {
   font-family: var(--font-serif);
-  font-size: 4rem;
+  font-size: 3.5rem;
   font-weight: 400;
   font-style: italic;
   margin-bottom: 1.5rem;
-  letter-spacing: 0.02em;
-  line-height: 1.1;
+  letter-spacing: 0.05em;
+  line-height: 1.2;
+  color: var(--accent);
 }
 
 .hero p {
   color: var(--text-secondary);
   font-size: 1.1rem;
-  max-width: 600px;
+  max-width: 550px;
   margin: 0 auto 2.5rem;
 }
 
@@ -109,50 +113,68 @@ h1, h2, h3 {
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2.25rem;
   margin-bottom: 1.5rem;
+  color: var(--accent);
 }
 
 h2 {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   margin-bottom: 1rem;
+  font-style: italic;
 }
 
 .btn {
   display: inline-block;
-  padding: 1rem 2.5rem;
+  padding: 0.875rem 2rem;
   background-color: transparent;
-  color: var(--text-primary);
+  color: var(--accent);
   text-decoration: none;
-  border: 1px solid var(--text-primary);
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
+  border: 1px solid var(--accent);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.3s ease;
+  font-family: var(--font-sans);
 }
 
 .btn:hover {
-  background-color: var(--text-primary);
-  color: var(--bg-primary);
+  background-color: var(--accent);
+  color: #fff;
 }
 
 .btn-primary {
   background-color: var(--accent);
   border-color: var(--accent);
-  color: var(--bg-primary);
+  color: #fff;
 }
 
 .btn-primary:hover {
-  background-color: var(--accent-hover);
-  border-color: var(--accent-hover);
+  background-color: var(--accent-dark);
+  border-color: var(--accent-dark);
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.65rem;
+}
+
+.btn-danger {
+  border-color: #8b2525;
+  color: #8b2525;
+}
+
+.btn-danger:hover {
+  background-color: #8b2525;
+  color: #fff;
 }
 
 input, textarea, select {
   width: 100%;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-  background: var(--bg-secondary);
+  padding: 0.875rem 1rem;
+  margin-bottom: 1.25rem;
+  background: #fff;
   border: 1px solid var(--border);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -170,14 +192,14 @@ input::placeholder {
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 label {
   display: block;
   margin-bottom: 0.5rem;
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-secondary);
 }
@@ -187,12 +209,13 @@ label {
   border: 1px solid var(--border);
   padding: 2rem;
   margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .card h2 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   margin-bottom: 1.5rem;
-  font-style: italic;
+  color: var(--accent);
 }
 
 .table {
@@ -208,11 +231,12 @@ label {
 }
 
 .table th {
-  font-size: 0.7rem;
-  letter-spacing: 0.1em;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-weight: 500;
+  background: var(--bg-secondary);
 }
 
 .table tbody tr {
@@ -224,32 +248,18 @@ label {
 }
 
 .best-price {
-  background: rgba(201, 169, 98, 0.1);
+  background: rgba(45, 74, 62, 0.05);
 }
 
 .best-price:hover {
-  background: rgba(201, 169, 98, 0.15);
-}
-
-.btn-danger {
-  border-color: #8b2525;
-  color: #cc4444;
-}
-
-.btn-danger:hover {
-  background-color: #8b2525;
-  color: var(--text-primary);
-}
-
-.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.7rem;
+  background: rgba(45, 74, 62, 0.1);
 }
 
 .badge {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
   font-weight: 400;
+  letter-spacing: 0.05em;
 }
 
 .empty-state {
@@ -265,27 +275,29 @@ a {
 }
 
 a:hover {
-  color: var(--accent-hover);
+  color: var(--accent-light);
 }
 
 /* Grid Layout */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 2rem;
 }
 
 /* Feature Cards */
 .feature {
   text-align: center;
-  padding: 3rem 2rem;
+  padding: 2.5rem 2rem;
+  background: var(--bg-card);
   border: 1px solid var(--border);
 }
 
 .feature h3 {
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-style: italic;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+  color: var(--accent);
 }
 
 .feature p {
@@ -295,8 +307,23 @@ a:hover {
 
 /* Divider */
 .divider {
-  width: 60px;
+  width: 80px;
   height: 1px;
-  background: var(--accent);
+  background: var(--gold);
   margin: 3rem auto;
+}
+
+/* Luxe accents */
+kbd {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 0.15rem 0.4rem;
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+/* Status indicators */
+.status {
+  margin-right: 0.5rem;
 }
