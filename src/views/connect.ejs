@@ -8,13 +8,12 @@
 <section class="card">
   <h2>Step 1: Drag This Button to Your Bookmarks Bar</h2>
   
-  <div style="text-align: center; padding: 2rem; background: var(--bg-secondary); border: 2px dashed var(--border); margin: 1.5rem 0;">
+  <div style="text-align: center; padding: 2rem; background: var(--bg-secondary); border: 1px solid var(--border); margin: 1.5rem 0;">
     <a 
       href="<%= bookmarklet %>" 
       class="btn btn-primary"
-      style="cursor: grab; font-size: 1rem; padding: 1rem 2rem; display: inline-block;"
+      style="cursor: grab; font-size: 0.85rem; padding: 1rem 2rem; display: inline-block;"
       draggable="true"
-      id="bookmarklet-btn"
     >
       📎 Connect to Handled
     </a>
@@ -24,21 +23,15 @@
   </div>
   
   <p style="color: var(--text-muted); font-size: 0.85rem;">
-    <strong>Don't see your bookmarks bar?</strong> Press <kbd>Cmd+Shift+B</kbd> (Mac) or <kbd>Ctrl+Shift+B</kbd> (Windows)
+    <strong style="color: var(--text-secondary);">Don't see your bookmarks bar?</strong> Press <kbd>Cmd+Shift+B</kbd> (Mac) or <kbd>Ctrl+Shift+B</kbd> (Windows)
   </p>
-  
-  <div style="margin-top: 1.5rem;">
-    <button id="done-step1" class="btn" onclick="completeStep1()">
-      ✓ Done - I've added it to my bookmarks bar
-    </button>
-  </div>
 </section>
 
-<!-- Step 2: Connect Platforms (hidden until step 1 done) -->
-<section class="card" style="margin-top: 2rem;" id="step2">
+<!-- Step 2: Connect Platforms -->
+<section class="card" style="margin-top: 2rem;">
   <h2>Step 2: Log In & Click the Bookmark</h2>
   <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-    Click each platform below. After logging in, click "📎 Connect to Handled" in your bookmarks bar.
+    Click each platform below to open it. After logging in, click "📎 Connect to Handled" in your bookmarks bar.
   </p>
   
   <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
@@ -46,7 +39,6 @@
       <button 
         class="btn platform-btn"
         data-platform="<%= key %>"
-        data-url="<%= platform.loginUrl %>"
         onclick="openPlatform('<%= key %>', '<%= platform.loginUrl %>')"
         style="flex: 1; min-width: 150px; padding: 1.5rem; text-align: center;"
       >
@@ -56,19 +48,19 @@
     <% }) %>
   </div>
 
-  <div id="platform-instructions" style="padding: 1rem; background: var(--bg-secondary); border-left: 3px solid var(--accent); display: none;">
+  <div id="platform-instructions" style="padding: 1rem; background: var(--bg-secondary); border-left: 3px solid var(--gold); display: none;">
     <p style="margin: 0; color: var(--text-secondary);">
       <span id="current-platform-name"></span> is now open. 
-      <strong>Log in if needed</strong>, then click the <strong>"📎 Connect to Handled"</strong> bookmark.
+      <strong style="color: var(--accent);">Log in if needed</strong>, then click the <strong style="color: var(--gold);">"📎 Connect to Handled"</strong> bookmark.
     </p>
   </div>
 </section>
 
 <!-- All Done -->
-<section class="card" style="margin-top: 2rem; display: none;" id="all-done">
-  <h2 style="color: var(--accent);">✓ All Set!</h2>
-  <p style="color: var(--text-secondary);">Your accounts are connected. Let's start shopping!</p>
-  <a href="/shop" class="btn btn-primary" style="margin-top: 1rem;">Start Shopping →</a>
+<section class="card" style="margin-top: 2rem; display: none; text-align: center;" id="all-done">
+  <h2 style="color: var(--gold);">✓ All Set!</h2>
+  <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Your accounts are connected. Let's start shopping!</p>
+  <a href="/shop" class="btn btn-primary">Start Shopping →</a>
 </section>
 
 <script>
@@ -79,13 +71,6 @@ const platformNames = {
 };
 
 const connectedPlatforms = new Set();
-
-function completeStep1() {
-  document.getElementById('step2').style.display = 'block';
-  document.getElementById('done-step1').innerHTML = '✓ Done!';
-  document.getElementById('done-step1').disabled = true;
-  document.getElementById('done-step1').style.opacity = '0.5';
-}
 
 function openPlatform(platform, url) {
   window.open(url, '_blank');
@@ -98,7 +83,7 @@ function markConnected(platform) {
   const status = document.getElementById('status-' + platform);
   if (status) {
     status.textContent = '✓';
-    status.style.color = '#c9a962';
+    status.style.color = 'var(--gold)';
   }
   
   if (connectedPlatforms.size >= 1) {
@@ -106,7 +91,6 @@ function markConnected(platform) {
   }
 }
 
-// Check for successful connections by polling
 function checkConnections() {
   fetch('/connect/status')
     .then(r => r.json())
@@ -118,7 +102,6 @@ function checkConnections() {
     .catch(() => {});
 }
 
-// Poll every 3 seconds
 setInterval(checkConnections, 3000);
 checkConnections();
 </script>

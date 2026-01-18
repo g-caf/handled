@@ -7,17 +7,16 @@
 }
 
 :root {
-  --bg-primary: #f8f6f1;
-  --bg-secondary: #f0ede5;
-  --bg-card: #ffffff;
-  --text-primary: #1a1a1a;
-  --text-secondary: #4a4a4a;
-  --text-muted: #888;
-  --accent: #2d4a3e;
-  --accent-light: #3d6252;
-  --accent-dark: #1e3329;
+  --bg-primary: #1e3329;
+  --bg-secondary: #2d4a3e;
+  --bg-card: #253d32;
+  --text-primary: #f5f3ef;
+  --text-secondary: #c8c4bc;
+  --text-muted: #8a9a8f;
+  --accent: #f5f3ef;
+  --accent-cream: #e8e4db;
   --gold: #c4a35a;
-  --border: #e0ddd5;
+  --border: #3d5a4e;
   --font-serif: 'Playfair Display', Georgia, serif;
   --font-sans: 'Lato', -apple-system, sans-serif;
 }
@@ -32,9 +31,9 @@ body {
 }
 
 nav {
-  background-color: var(--accent);
+  background-color: #162620;
   padding: 1.25rem 2rem;
-  border-bottom: 1px solid var(--accent-dark);
+  border-bottom: 1px solid var(--border);
 }
 
 .nav-container {
@@ -47,7 +46,7 @@ nav {
 
 .logo {
   font-family: var(--font-serif);
-  color: #fff;
+  color: var(--accent);
   text-decoration: none;
   font-size: 1.5rem;
   font-weight: 500;
@@ -62,7 +61,7 @@ nav {
 }
 
 .nav-links a {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 0.75rem;
   letter-spacing: 0.15em;
@@ -71,7 +70,7 @@ nav {
 }
 
 .nav-links a:hover {
-  color: #fff;
+  color: var(--accent);
 }
 
 .container {
@@ -87,6 +86,7 @@ nav {
   max-width: 800px;
   margin: 0 auto;
   background: linear-gradient(to bottom, var(--bg-secondary), var(--bg-primary));
+  border-radius: 4px;
 }
 
 .hero h1 {
@@ -122,6 +122,7 @@ h2 {
   font-size: 1.5rem;
   margin-bottom: 1rem;
   font-style: italic;
+  color: var(--accent-cream);
 }
 
 .btn {
@@ -141,18 +142,18 @@ h2 {
 
 .btn:hover {
   background-color: var(--accent);
-  color: #fff;
+  color: var(--bg-primary);
 }
 
 .btn-primary {
   background-color: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--bg-primary);
 }
 
 .btn-primary:hover {
-  background-color: var(--accent-dark);
-  border-color: var(--accent-dark);
+  background-color: var(--gold);
+  border-color: var(--gold);
 }
 
 .btn-sm {
@@ -161,20 +162,20 @@ h2 {
 }
 
 .btn-danger {
-  border-color: #8b2525;
-  color: #8b2525;
+  border-color: #cc6666;
+  color: #cc6666;
 }
 
 .btn-danger:hover {
-  background-color: #8b2525;
-  color: #fff;
+  background-color: #cc6666;
+  color: var(--bg-primary);
 }
 
 input, textarea, select {
   width: 100%;
   padding: 0.875rem 1rem;
   margin-bottom: 1.25rem;
-  background: #fff;
+  background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -184,7 +185,7 @@ input, textarea, select {
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: var(--accent);
+  border-color: var(--gold);
 }
 
 input::placeholder {
@@ -209,13 +210,12 @@ label {
   border: 1px solid var(--border);
   padding: 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .card h2 {
   font-size: 1.25rem;
   margin-bottom: 1.5rem;
-  color: var(--accent);
 }
 
 .table {
@@ -248,11 +248,11 @@ label {
 }
 
 .best-price {
-  background: rgba(45, 74, 62, 0.05);
+  background: rgba(196, 163, 90, 0.1);
 }
 
 .best-price:hover {
-  background: rgba(45, 74, 62, 0.1);
+  background: rgba(196, 163, 90, 0.15);
 }
 
 .badge {
@@ -270,12 +270,12 @@ label {
 }
 
 a {
-  color: var(--accent);
+  color: var(--gold);
   transition: color 0.3s ease;
 }
 
 a:hover {
-  color: var(--accent-light);
+  color: var(--accent-cream);
 }
 
 /* Grid Layout */
@@ -297,7 +297,7 @@ a:hover {
   font-size: 1.125rem;
   font-style: italic;
   margin-bottom: 0.75rem;
-  color: var(--accent);
+  color: var(--accent-cream);
 }
 
 .feature p {
@@ -321,9 +321,22 @@ kbd {
   padding: 0.15rem 0.4rem;
   font-size: 0.8rem;
   font-family: inherit;
+  color: var(--text-secondary);
 }
 
 /* Status indicators */
 .status {
   margin-right: 0.5rem;
+}
+
+/* Platform buttons */
+.platform-btn {
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+.platform-btn:hover {
+  background: var(--border);
+  border-color: var(--gold);
+  color: var(--accent);
 }
