@@ -25,14 +25,7 @@ const PLATFORMS = {
 function generateBookmarklet(baseUrl) {
   const code = `
     (function() {
-      var cookies = document.cookie.split(';').filter(function(c) { return c.trim(); }).map(function(c) {
-        var parts = c.trim().split('=');
-        return { name: parts[0], value: parts.slice(1).join('='), domain: location.hostname };
-      });
-      var data = {
-        cookies: cookies,
-        origins: [{ origin: location.origin, localStorage: [] }]
-      };
+      var cookies = document.cookie;
       var domain = location.hostname.replace('www.', '').split('.').slice(-2).join('.');
       var platform = domain.includes('ubereats') ? 'ubereats' : 
                      domain.includes('doordash') ? 'doordash' : 
@@ -41,23 +34,12 @@ function generateBookmarklet(baseUrl) {
         alert('Please run this on Uber Eats, DoorDash, or Instacart.');
         return;
       }
-      var form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '${baseUrl}/connect/receive-form';
-      form.target = '_blank';
-      var pInput = document.createElement('input');
-      pInput.type = 'hidden';
-      pInput.name = 'platform';
-      pInput.value = platform;
-      form.appendChild(pInput);
-      var sInput = document.createElement('input');
-      sInput.type = 'hidden';
-      sInput.name = 'storageState';
-      sInput.value = JSON.stringify(data);
-      form.appendChild(sInput);
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+      var data = btoa(unescape(encodeURIComponent(JSON.stringify({
+        cookies: cookies,
+        origin: location.origin,
+        hostname: location.hostname
+      }))));
+      window.open('${baseUrl}/connect/save?platform=' + platform + '&data=' + encodeURIComponent(data), '_blank');
     })();
   `.replace(/\s+/g, ' ').trim();
   
@@ -76,6 +58,70 @@ router.get('/connect', (req, res) => {
     baseUrl,
   });
 });
+
+// GET endpoint for bookmarklet redirect
+router.get('/connect/save', async (req, res) => {
+  try {
+    const { platform, data } = req.query;
+    
+    if (!platform || !data) {
+      return res.send(errorPage('Missing data'));
+    }
+    
+    if (!PLATFORMS[platform]) {
+      return res.send(errorPage('Invalid platform'));
+    }
+    
+    // Decode the base64 data
+    const decoded = JSON.parse(decodeURIComponent(escape(atob(data))));
+    
+    // Parse cookies string into array
+    const cookies = decoded.cookies.split(';').filter(c => c.trim()).map(c => {
+      const parts = c.trim().split('=');
+      return { name: parts[0], value: parts.slice(1).join('='), domain: decoded.hostname };
+    });
+    
+    const storageState = {
+      cookies: cookies,
+      origins: [{ origin: decoded.origin, localStorage: [] }]
+    };
+    
+    await saveSession(platform, storageState);
+    
+    const platformName = PLATFORMS[platform].name;
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Connected!</title>
+        <style>
+          body { font-family: system-ui; background: #0a0a0a; color: #f5f5f0; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+          .card { background: #1a1a1a; padding: 3rem; border-radius: 8px; text-align: center; max-width: 400px; }
+          h1 { color: #c9a962; margin-bottom: 1rem; }
+          p { color: #a0a0a0; margin-bottom: 2rem; }
+          a { display: inline-block; padding: 1rem 2rem; background: #c9a962; color: #0a0a0a; text-decoration: none; margin-top: 1rem; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h1>✓ Connected!</h1>
+          <p>${platformName} has been connected to Handled.</p>
+          <p>You can close this tab and the ${platformName} tab.</p>
+          <a href="/shop">Go to Shop</a>
+        </div>
+      </body>
+      </html>
+    `);
+  } catch (err) {
+    console.error('Error saving session:', err);
+    res.send(errorPage('Failed to save: ' + err.message));
+  }
+});
+
+// Helper for atob in Node
+function atob(str) {
+  return Buffer.from(str, 'base64').toString('binary');
+}
 
 router.get('/connect/popup/:platform', (req, res) => {
   const { platform } = req.params;
