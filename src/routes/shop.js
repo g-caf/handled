@@ -24,12 +24,100 @@ function getOrCreateUserState(sessionId) {
 router.get('/shop', async (req, res) => {
   const state = getOrCreateUserState(req.session.id);
 
+  // Check if any platforms are connected
+  let hasConnectedPlatforms = false;
+  for (const platform of ['ubereats', 'doordash', 'instacart']) {
+    try {
+      const session = await getSession(platform);
+      if (session) {
+        hasConnectedPlatforms = true;
+        break;
+      }
+    } catch {
+      // Table might not exist yet
+    }
+  }
+
+  // If no platforms connected, redirect to connect flow
+  if (!hasConnectedPlatforms) {
+    return res.redirect('/connect');
+  }
+
+  // Auto-import if we haven't fetched yet
+  if (!state.lastFetched) {
+    return res.redirect('/shop/auto-import');
+  }
+
   res.render('shop', {
     title: 'Your Groceries',
     suggestions: state.suggestions,
     lastFetched: state.lastFetched,
     error: null,
     message: null,
+  });
+});
+
+// Auto-import route that fetches and redirects
+router.get('/shop/auto-import', async (req, res) => {
+  const state = getOrCreateUserState(req.session.id);
+  const errors = [];
+  const allOrders = [];
+
+  for (const platform of ['ubereats', 'doordash', 'instacart']) {
+    let session;
+    try {
+      session = await getSession(platform);
+    } catch {
+      continue;
+    }
+    if (!session) continue;
+
+    const slot = await acquireSlot(platform);
+    if (!slot.allowed) {
+      errors.push(`${platform}: ${slot.reason}`);
+      continue;
+    }
+
+    try {
+      const storageState = typeof session.storageState === 'string'
+        ? JSON.parse(session.storageState)
+        : session.storageState;
+
+      let result;
+      if (platform === 'ubereats') {
+        result = await fetchUberEatsOrderHistory(storageState);
+      } else if (platform === 'doordash') {
+        result = await fetchDoorDashOrderHistory(storageState);
+      } else {
+        result = await instacartAgent.fetchOrderHistory(storageState);
+      }
+
+      if (result.error) {
+        releaseSlot(platform, false, true);
+        errors.push(`${platform}: ${result.error}`);
+      } else {
+        releaseSlot(platform, true, false);
+        allOrders.push(...result.orders);
+        if (result.updatedStorageState) {
+          await saveSession(platform, result.updatedStorageState);
+        }
+      }
+    } catch (err) {
+      releaseSlot(platform, false, false);
+      errors.push(`${platform}: ${err.message}`);
+    }
+  }
+
+  state.suggestions = extractUniqueItemsFromOrders(allOrders);
+  state.orders = allOrders;
+  state.lastFetched = new Date().toISOString();
+
+  res.render('shop', {
+    title: 'Your Groceries',
+    suggestions: state.suggestions,
+    lastFetched: state.lastFetched,
+    error: errors.length > 0 ? errors.join('; ') : null,
+    message: allOrders.length > 0 ? `Found ${state.suggestions.length} items from your order history` : null,
   });
 });
 

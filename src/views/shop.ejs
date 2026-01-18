@@ -12,29 +12,22 @@
   </div>
 <% } %>
 
-<div style="margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center;">
-  <form action="/shop/fetch-history" method="POST" style="display: inline;">
-    <button type="submit" class="btn btn-primary">
-      <%= lastFetched ? 'Refresh' : 'Import Order History' %>
-    </button>
-  </form>
-  <% if (lastFetched) { %>
-    <span class="badge">Updated <%= new Date(lastFetched).toLocaleTimeString() %></span>
-  <% } %>
-  <a href="/connect" class="btn" style="margin-left: auto;">Connect Accounts</a>
-</div>
-
 <% if (suggestions.length > 0) { %>
+  <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+    <span class="badge">Updated <%= new Date(lastFetched).toLocaleTimeString() %></span>
+    <a href="/shop/auto-import" class="btn btn-sm">↻ Refresh</a>
+  </div>
+
   <div class="card" style="padding: 0; overflow-x: auto;">
     <table class="table" style="margin: 0;">
       <thead>
         <tr>
           <th>Item</th>
-          <th style="text-align: center;">Times Ordered</th>
-          <th style="text-align: right;">Lowest Price</th>
-          <th style="text-align: right;">Highest Price</th>
+          <th style="text-align: center;">Ordered</th>
+          <th style="text-align: right;">Lowest</th>
+          <th style="text-align: right;">Highest</th>
           <th style="text-align: center;">Qty</th>
-          <th style="text-align: center;">Add to Cart</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -43,24 +36,22 @@
             <td>
               <strong><%= item.name %></strong>
               <% if (item.lowestPrice?.platform) { %>
-                <br><span class="badge">Best: <%= item.lowestPrice.platform %></span>
+                <br><span class="badge" style="font-size: 0.7rem;"><%= item.lowestPrice.platform %></span>
               <% } %>
             </td>
             <td style="text-align: center;"><%= item.count %>×</td>
             <td style="text-align: right;">
-              <% if (item.lowestPrice) { %>
-                <span style="color: var(--accent);">
-                  $<%= item.lowestPrice.price?.toFixed(2) || '—' %>
-                </span>
+              <% if (item.lowestPrice?.price) { %>
+                <span style="color: var(--accent);">$<%= item.lowestPrice.price.toFixed(2) %></span>
               <% } else { %>
-                <span class="badge">—</span>
+                —
               <% } %>
             </td>
             <td style="text-align: right;">
-              <% if (item.highestPrice) { %>
-                $<%= item.highestPrice.price?.toFixed(2) || '—' %>
+              <% if (item.highestPrice?.price) { %>
+                $<%= item.highestPrice.price.toFixed(2) %>
               <% } else { %>
-                <span class="badge">—</span>
+                —
               <% } %>
             </td>
             <td style="text-align: center;">
@@ -70,29 +61,17 @@
                 value="1" 
                 min="1" 
                 max="99"
-                style="width: 60px; text-align: center; padding: 0.4rem;"
+                style="width: 50px; text-align: center; padding: 0.3rem;"
               >
             </td>
-            <td style="text-align: center;">
-              <div style="display: flex; gap: 0.5rem; justify-content: center;">
-                <% if (item.lowestPrice?.storeUrl) { %>
-                  <form action="/shop/add-to-cart" method="POST" style="display: inline;">
-                    <input type="hidden" name="itemName" value="<%= item.name %>">
-                    <input type="hidden" name="platform" value="<%= item.lowestPrice.platform %>">
-                    <input type="hidden" name="storeUrl" value="<%= item.lowestPrice.storeUrl %>">
-                    <input type="hidden" name="quantity" value="1" class="qty-input" data-idx="<%= idx %>">
-                    <button type="submit" class="btn btn-sm btn-primary" title="Add to <%= item.lowestPrice.platform %>">
-                      + Best
-                    </button>
-                  </form>
-                <% } else { %>
-                  <form action="/shop/add-to-cart" method="POST" style="display: inline;">
-                    <input type="hidden" name="itemName" value="<%= item.name %>">
-                    <input type="hidden" name="quantity" value="1" class="qty-input" data-idx="<%= idx %>">
-                    <button type="submit" class="btn btn-sm">+ Add</button>
-                  </form>
-                <% } %>
-              </div>
+            <td>
+              <form action="/shop/add-to-cart" method="POST" style="display: inline;">
+                <input type="hidden" name="itemName" value="<%= item.name %>">
+                <input type="hidden" name="platform" value="<%= item.lowestPrice?.platform || '' %>">
+                <input type="hidden" name="storeUrl" value="<%= item.lowestPrice?.storeUrl || '' %>">
+                <input type="hidden" name="quantity" value="1" class="qty-input" data-idx="<%= idx %>">
+                <button type="submit" class="btn btn-sm btn-primary">+ Add</button>
+              </form>
             </td>
           </tr>
         <% }) %>
@@ -101,7 +80,6 @@
   </div>
 
   <script>
-    // Sync quantity inputs with hidden form fields
     document.querySelectorAll('input[type="number"]').forEach(input => {
       input.addEventListener('change', function() {
         const idx = this.id.replace('qty-', '');
@@ -116,13 +94,11 @@
   <div class="card">
     <p class="empty-state">
       <% if (lastFetched) { %>
-        No items found in your order history.
+        No items found in your order history yet.
         <br><br>
-        Make sure you've connected your accounts and have past orders.
+        Make sure you have past orders on connected platforms.
       <% } else { %>
-        Import your order history to see your frequently ordered items with price comparison.
-        <br><br>
-        <a href="/connect">Connect your accounts first →</a>
+        Loading your order history...
       <% } %>
     </p>
   </div>

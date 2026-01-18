@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { saveSession } from '../services/sessionService.js';
+import { saveSession, listSessions } from '../services/sessionService.js';
 
 const router = Router();
 
@@ -57,6 +57,24 @@ router.get('/connect', (req, res) => {
     bookmarklet,
     baseUrl,
   });
+});
+
+// API endpoint to check connection status
+router.get('/connect/status', async (req, res) => {
+  try {
+    const sessions = await listSessions();
+    const status = Object.keys(PLATFORMS).map(platform => ({
+      platform,
+      connected: sessions.some(s => s.platform === platform),
+    }));
+    res.json(status);
+  } catch (err) {
+    // Table might not exist yet
+    res.json(Object.keys(PLATFORMS).map(platform => ({
+      platform,
+      connected: false,
+    })));
+  }
 });
 
 // GET endpoint for bookmarklet redirect
